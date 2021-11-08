@@ -42,8 +42,8 @@
     mov ax, @data ;;Accediendo a la base de datos.
     mov ds, ax    
     
-    mov ah, 0
-    mov al, 00h
+    mov ah, 0    ;; Configura video
+    mov al, 00h  ;; 40x25 16 colores
     int 10h
     
     mov cx, 10
