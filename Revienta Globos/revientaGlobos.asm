@@ -9,6 +9,10 @@
   jugando db ,10,13, "Bienvenido Jugador!", "$"
   pedir db ,10,13, "Ingrese un nombre: ", "$" 
   despedida db ,10,13, "Hasta pronto Jugador!", "$"
+  cargandoMatriz db , "REVIENTA GLOBOS",10,13, "$"
+  jugadores db ,10,13, "  ------ JUGADORES -----", "$"
+  nivel1 db ,10,13, " NIVEL 1", "$"
+  puntos db ":", "$" 
    
   ;; Variables del menu
   opcion db 0
@@ -17,11 +21,32 @@
   
   ;; Salto de Linea
   salto db 13,10, '$'
-  
+  espacio db " ", "$"
+  space db "  ", "$"
   
   ;; Variables de los jugadores   
   jugador1 db 10 dup(?), '$'
   jugador2 db 10 dup(?), '$'
+  
+  
+  ;; matriz de 10x10
+  matriz db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         db 10 dup(0)
+         
+  ;; posiciones de globos nivel 1
+  globo1 db 2
+  globo2 db 4
+  globo3 db 7
+  globo4 db 20
+  dlobo5 db 30       
       
 .code
   imprime macro arg  ;; Macro para imprimir cualquier mensaje por parametro
@@ -36,7 +61,7 @@
     pop ax
         
     endm                  
-     
+    
              
   inicio: 
     mov ax, @data ;;Accediendo a la base de datos.
@@ -89,7 +114,7 @@
             
           loop leer_str1
         
-        imprimir_str1:
+        imprimir_str1: ;;imprime informacion del jugador 1
             imprime salto
             mov ah, 09
             lea dx, jugador1
@@ -110,18 +135,88 @@
             
           loop leer_str2
         
-        imprimir_str2:
+        imprimir_str2:  ;;imprime informacion del jugador 2
             imprime salto
             mov ah, 09
             lea dx, jugador2
             int 21h    
             
-        salir:
-            jmp menu       
+        iniciarJuego:  ;; salta a la flag del juego
+            jmp playing 
+    
+    pintarCuadro:   ;; se encarga de pintar el cuadro donde apareceran los globos
+        mov ah, 0ch ;;Configuracion par aun solo pixel
+        mov al, 0fh ;; Color blanco
+        mov cx, 10  ;; coordenada columna
+        mov dx, 60  ;; coordenada fila
+        int 21h 
+            ;; lineas del cuadro
+            izquierda:
+                inc dx
+                int 10h
+                cmp dx, 190
+                jne izquierda
+                je abajo
+            abajo:
+                inc cx
+                int 10h
+                cmp cx, 300
+                jne abajo
+                je derecha    
+            derecha:
+                dec dx
+                int 10h
+                cmp dx, 60
+                jne derecha
+                je arriba    
+            arriba:
+                dec cx
+                int 10h
+                cmp cx, 10
+                jne arriba
+                .exit 
+                           
+    pintarNombres:
+        
+        imprime jugadores
+        imprime salto 
+        imprime space 
+        imprime space
+        imprime space
+        imprime jugador1 
+        imprime espacio
+        imprime jugador2
+        imprime salto
+        imprime space
+        imprime nivel1
+        imprime salto
+        jmp pintarCuadro
+       
+        
+    nivelUno:  ;; llama los elementos del nivel 1 
+        imprime salto
+        imprime espacio
+        imprime cargandoMatriz
+        call pintarNombres
+        
+                
+    playing:
+        mov ah, 0    ;; Configura video
+        mov al, 13h  ;; 40x25 16 colores
+        int 10h       
+        
+        xor ax,ax
+        xor bx,bx
+        xor cx,cx
+        mov si, 0
+        
+        call nivelUno
+        
+                        
           
     juego:  ;; funciona para implementar el juego
       imprime jugando 
-      je pedir_nombres 
+      call pedir_nombres 
                  
     salgo:  ;; sale del juego
       imprime despedida
