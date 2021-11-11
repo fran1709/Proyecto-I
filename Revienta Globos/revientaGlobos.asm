@@ -144,12 +144,147 @@
         iniciarJuego:  ;; salta a la flag del juego
             jmp playing 
     
+    
+    globoYellow:
+        mov ah, 0ch ;;Configuracion par aun solo pixel
+        mov al, 0eh ;; Color zul
+        mov cx, 100  ;; coordenada columna
+        mov dx, 80  ;; coordenada fila
+        int 10h
+            ;; lineas del globo
+            izqAm:
+                inc dx
+                int 10h
+                cmp dx, 82
+                jne izqAm
+                je abaAm
+            abaAm:
+                inc cx
+                int 10h
+                cmp cx, 102
+                jne abaAm
+                je dereAm    
+            dereAm:
+                dec dx
+                int 10h
+                cmp dx, 80
+                jne dereAm
+                je arriAm    
+            arriAm:
+                dec cx
+                int 10h
+                cmp cx, 100
+                jne arriAm
+            .exit
+            
+                
+    globoAzul:
+        mov ah, 0ch ;;Configuracion par aun solo pixel
+        mov al, 01h ;; Color zul
+        mov cx, 90  ;; coordenada columna
+        mov dx, 130  ;; coordenada fila
+        int 10h
+            ;; lineas del globo
+            izqA:
+                inc dx
+                int 10h
+                cmp dx, 132
+                jne izqA
+                je abaA
+            abaA:
+                inc cx
+                int 10h
+                cmp cx, 92
+                jne abaA
+                je dereA    
+            dereA:
+                dec dx
+                int 10h
+                cmp dx, 130
+                jne dereA
+                je arriA    
+            arriA:
+                dec cx
+                int 10h
+                cmp cx, 90
+                jne arriA
+            jmp globoYellow 
+    
+    
+    globoVerde:
+        mov ah, 0ch ;;Configuracion par aun solo pixel
+        mov al, 02h ;; Color verde
+        mov cx, 60  ;; coordenada columna
+        mov dx, 100  ;; coordenada fila
+        int 10h
+            ;; lineas del globo
+            izqG:
+                inc dx
+                int 10h
+                cmp dx, 102
+                jne izqG
+                je abaG
+            abaG:
+                inc cx
+                int 10h
+                cmp cx, 62
+                jne abaG
+                je dereG    
+            dereG:
+                dec dx
+                int 10h
+                cmp dx, 100
+                jne dereG
+                je arriG    
+            arriG:
+                dec cx
+                int 10h
+                cmp cx, 60
+                jne arriG
+            jmp globoAzul             
+    
+    globoRojo:
+        mov ah, 0ch ;;Configuracion par aun solo pixel
+        mov al, 04h ;; Color rojo
+        mov cx, 40  ;; coordenada columna
+        mov dx, 90  ;; coordenada fila
+        int 10h
+            ;; lineas del globo
+            izquierda1:
+                inc dx
+                int 10h
+                cmp dx, 92
+                jne izquierda1
+                je abajo1
+            abajo1:
+                inc cx
+                int 10h
+                cmp cx, 42
+                jne abajo1
+                je derecha1    
+            derecha1:
+                dec dx
+                int 10h
+                cmp dx, 90
+                jne derecha1
+                je arriba1    
+            arriba1:
+                dec cx
+                int 10h
+                cmp cx, 40
+                jne arriba1
+            jmp globoVerde 
+                 
+    pintarGlobos:
+           call globoRojo
+  
+    
     pintarCuadro:   ;; se encarga de pintar el cuadro donde apareceran los globos
         mov ah, 0ch ;;Configuracion par aun solo pixel
         mov al, 0fh ;; Color blanco
         mov cx, 10  ;; coordenada columna
         mov dx, 60  ;; coordenada fila
-        int 21h 
+        int 10h 
             ;; lineas del cuadro
             izquierda:
                 inc dx
@@ -160,7 +295,7 @@
             abajo:
                 inc cx
                 int 10h
-                cmp cx, 300
+                cmp cx, 200
                 jne abajo
                 je derecha    
             derecha:
@@ -174,7 +309,7 @@
                 int 10h
                 cmp cx, 10
                 jne arriba
-                .exit 
+         jmp pintarGlobos 
                            
     pintarNombres:
         
