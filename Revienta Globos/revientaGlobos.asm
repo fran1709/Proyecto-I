@@ -144,12 +144,28 @@
         iniciarJuego:  ;; salta a la flag del juego
             jmp playing 
     
+    obtenerClic:
+        mov ax, 3
+        int 33h
+        cmp bx, 1
+        je menu
+        .exit
+    
+    iniciarMouse:
+        mov ax, 0 ;; se inicia el mouse con el pointer invisible
+        int 33h
+        
+        mov ax, 1 ;; hace visible el pointer
+        int 33h
+        
+        jmp obtenerClic
+        
     
     globoYellow:
-        mov ah, 0ch ;;Configuracion par aun solo pixel
-        mov al, 0eh ;; Color zul
+        mov ah, 0ch  ;;Configuracion para un solo pixel
+        mov al, 0eh  ;; Color zul
         mov cx, 100  ;; coordenada columna
-        mov dx, 80  ;; coordenada fila
+        mov dx, 80   ;; coordenada fila
         int 10h
             ;; lineas del globo
             izqAm:
@@ -175,13 +191,14 @@
                 int 10h
                 cmp cx, 100
                 jne arriAm
-            .exit
+            
+            jmp iniciarMouse
             
                 
     globoAzul:
-        mov ah, 0ch ;;Configuracion par aun solo pixel
-        mov al, 01h ;; Color zul
-        mov cx, 90  ;; coordenada columna
+        mov ah, 0ch  ;; Configuracion para un solo pixel
+        mov al, 01h  ;; Color zul
+        mov cx, 90   ;; coordenada columna
         mov dx, 130  ;; coordenada fila
         int 10h
             ;; lineas del globo
@@ -212,9 +229,9 @@
     
     
     globoVerde:
-        mov ah, 0ch ;;Configuracion par aun solo pixel
-        mov al, 02h ;; Color verde
-        mov cx, 60  ;; coordenada columna
+        mov ah, 0ch  ;; Configuracion para un solo pixel
+        mov al, 02h  ;; Color verde
+        mov cx, 60   ;; coordenada columna
         mov dx, 100  ;; coordenada fila
         int 10h
             ;; lineas del globo
@@ -244,7 +261,7 @@
             jmp globoAzul             
     
     globoRojo:
-        mov ah, 0ch ;;Configuracion par aun solo pixel
+        mov ah, 0ch ;; Configuracion para un solo pixel
         mov al, 04h ;; Color rojo
         mov cx, 40  ;; coordenada columna
         mov dx, 90  ;; coordenada fila
@@ -276,7 +293,7 @@
             jmp globoVerde 
                  
     pintarGlobos:
-           call globoRojo
+           jmp globoRojo
   
     
     pintarCuadro:   ;; se encarga de pintar el cuadro donde apareceran los globos
@@ -332,12 +349,11 @@
         imprime salto
         imprime espacio
         imprime cargandoMatriz
-        call pintarNombres
+        jmp pintarNombres
         
                 
     playing:
-        mov ah, 0    ;; Configura video
-        mov al, 13h  ;; 40x25 16 colores
+        mov ax, 0013h  ;; 40x25 16 colores
         int 10h       
         
         xor ax,ax
@@ -345,13 +361,13 @@
         xor cx,cx
         mov si, 0
         
-        call nivelUno
+        jmp nivelUno
         
                         
           
     juego:  ;; funciona para implementar el juego
       imprime jugando 
-      call pedir_nombres 
+      jmp pedir_nombres 
                  
     salgo:  ;; sale del juego
       imprime despedida
