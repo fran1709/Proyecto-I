@@ -12,7 +12,18 @@
   cargandoMatriz db , "REVIENTA GLOBOS",10,13, "$"
   jugadores db ,10,13, "  ------ JUGADORES -----", "$"
   nivel1 db ,10,13, " NIVEL 1", "$"
-  puntos db ":", "$" 
+  nivel2 db ,10,13, " NIVEL 2", "$"
+  puntos db ":", "$"
+  
+  ;; cuadro
+  arriC db " -------------------------------", 10,13, "$"
+  dereC db "|" , "$"
+  espC db "                               ", "$" 
+  
+  ;; globo
+  limpiarPix db " ", "$"
+  xGlobo dw 0
+  yGlobo dw 0
    
   ;; Variables del menu
   opcion db 0
@@ -143,13 +154,26 @@
             
         iniciarJuego:  ;; salta a la flag del juego
             jmp playing 
+      
     
-    obtenerClic:
+    borrarGlobo:
+        mov ah, 0ch  ;;Configuracion para un solo pixel
+        mov al, 02h  ;; Color verde
+        mov dx, xGlobo
+        mov cx, yGlobo 
+        int 10h
+        jmp menu    
+    
+    obtenerClic: ;; lectura del clic derecho  
+        xor dx, dx
+        xor cx, cx
         mov ax, 3
         int 33h
         cmp bx, 1
-        je menu
-        .exit
+        mov yGlobo, cx
+        mov xGlobo, dx
+        je borrarGlobo
+        jmp obtenerClic
     
     iniciarMouse:
         mov ax, 0 ;; se inicia el mouse con el pointer invisible
@@ -163,41 +187,41 @@
     
     globoYellow:
         mov ah, 0ch  ;;Configuracion para un solo pixel
-        mov al, 0eh  ;; Color zul
+        mov al, 0eh  ;; Color amarillo
         mov cx, 100  ;; coordenada columna
         mov dx, 80   ;; coordenada fila
         int 10h
             ;; lineas del globo
-            izqAm:
-                inc dx
-                int 10h
-                cmp dx, 82
-                jne izqAm
-                je abaAm
-            abaAm:
-                inc cx
-                int 10h
-                cmp cx, 102
-                jne abaAm
-                je dereAm    
-            dereAm:
-                dec dx
-                int 10h
-                cmp dx, 80
-                jne dereAm
-                je arriAm    
-            arriAm:
-                dec cx
-                int 10h
-                cmp cx, 100
-                jne arriAm
+            ;izqAm:
+;                inc dx
+;                int 10h
+;                cmp dx, 82
+;                jne izqAm
+;                je abaAm
+;            abaAm:
+;                inc cx
+;                int 10h
+;                cmp cx, 102
+;                jne abaAm
+;                je dereAm    
+;            dereAm:
+;                dec dx
+;                int 10h
+;                cmp dx, 80
+;                jne dereAm
+;                je arriAm    
+;            arriAm:
+;                dec cx
+;                int 10h
+;                cmp cx, 100
+;                jne arriAm
             
             jmp iniciarMouse
             
                 
     globoAzul:
         mov ah, 0ch  ;; Configuracion para un solo pixel
-        mov al, 01h  ;; Color zul
+        mov al, 01h  ;; Color azul
         mov cx, 90   ;; coordenada columna
         mov dx, 130  ;; coordenada fila
         int 10h
@@ -295,38 +319,89 @@
     pintarGlobos:
            jmp globoRojo
   
-    
-    pintarCuadro:   ;; se encarga de pintar el cuadro donde apareceran los globos
-        mov ah, 0ch ;;Configuracion par aun solo pixel
-        mov al, 0fh ;; Color blanco
-        mov cx, 10  ;; coordenada columna
-        mov dx, 60  ;; coordenada fila
-        int 10h 
-            ;; lineas del cuadro
-            izquierda:
-                inc dx
-                int 10h
-                cmp dx, 190
-                jne izquierda
-                je abajo
-            abajo:
-                inc cx
-                int 10h
-                cmp cx, 200
-                jne abajo
-                je derecha    
-            derecha:
-                dec dx
-                int 10h
-                cmp dx, 60
-                jne derecha
-                je arriba    
-            arriba:
-                dec cx
-                int 10h
-                cmp cx, 10
-                jne arriba
-         jmp pintarGlobos 
+    pCuadro:  ;; pinta el cuadro como texto
+        imprime salto
+        imprime arriC
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime dereC
+        imprime espC
+        imprime dereC
+        
+        imprime salto
+        imprime arriC
+        
+      jmp pintarGlobos
+      
+    ;pintarCuadro:   ;; se encarga de pintar el cuadro donde apareceran los globos
+;        mov ah, 0ch ;;Configuracion par aun solo pixel
+;        mov al, 0fh ;; Color blanco
+;        mov cx, 10  ;; coordenada columna
+;        mov dx, 60  ;; coordenada fila
+;        int 10h 
+;            ;; lineas del cuadro
+;            izquierda:
+;                inc dx
+;                int 10h
+;                cmp dx, 190
+;                jne izquierda
+;                je abajo
+;            abajo:
+;                inc cx
+;                int 10h
+;                cmp cx, 200
+;                jne abajo
+;                je derecha    
+;            derecha:
+;                dec dx
+;                int 10h
+;                cmp dx, 60
+;                jne derecha
+;                je arriba    
+;            arriba:
+;                dec cx
+;                int 10h
+;                cmp cx, 10
+;                jne arriba
+;         jmp pintarGlobos 
                            
     pintarNombres:
         
@@ -342,7 +417,7 @@
         imprime space
         imprime nivel1
         imprime salto
-        jmp pintarCuadro
+        jmp pCuadro
        
         
     nivelUno:  ;; llama los elementos del nivel 1 
@@ -356,14 +431,13 @@
         mov ax, 0013h  ;; 40x25 16 colores
         int 10h       
         
-        xor ax,ax
-        xor bx,bx
-        xor cx,cx
-        mov si, 0
+        ;xor ax,ax
+;        xor bx,bx
+;        xor cx,cx
+;        mov si, 0
         
         jmp nivelUno
-        
-                        
+                             
           
     juego:  ;; funciona para implementar el juego
       imprime jugando 
