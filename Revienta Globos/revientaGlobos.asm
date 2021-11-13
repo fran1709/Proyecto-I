@@ -34,7 +34,10 @@ include "emu8086.inc"
   dato1 db 1
   dato2 db 2
   ciclo dw 64h 
-  salir db "Salir","$"
+  salir db "Salir [$" 
+  derrota db "Derrota [$"  
+  reiniciar db "Reiniciar [$"
+  final db "] $"
   
   ;; Salto de Linea
   salto db 13,10, '$'
@@ -43,7 +46,10 @@ include "emu8086.inc"
   
   ;; Variables de los jugadores   
   jugador1 db 10 dup(?), '$'
-  jugador2 db 10 dup(?), '$'
+  jugador2 db 10 dup(?), '$' 
+  
+  ;Turno de los jugadores
+  turno db 0 ;Es 0 para el turno de jugador1, es 1 para jugador2
   
   
   ;; matriz de 10x10
@@ -244,13 +250,104 @@ include "emu8086.inc"
         ;comparar x,y con variable
         
         
-        ;; Una coordenada para salir
-        cmp cx,131 
-        jne globoSelec
-        cmp dx,166
-        jne globoSelec
-        je salirJuego 
+        ;; Coordenada 'X' para salir
+        cmp cx,161 
+        je salirY
+        cmp cx,162 
+        je salirY
+        cmp cx,163 
+        je salirY
+        cmp cx,164 
+        je salirY
+        cmp cx,165 
+        je salirY
+        jmp derrotaX
         
+        salirY: ;; Coordenada 'Y' para salir
+        cmp dx,190
+        je salirJuego
+        cmp dx,189
+        je salirJuego
+        cmp dx,188
+        je salirJuego
+        cmp dx,187
+        je salirJuego
+        cmp dx,186
+        je salirJuego
+        cmp dx,185
+        je salirJuego
+        jne derrotaX ;; No dio click en el boton salir
+         
+        ; Coordenada 'X' para derrota
+        derrotaX:
+        cmp cx,217
+        je derrotaY
+        cmp cx,218
+        je derrotaY
+        cmp cx,219
+        je derrotaY
+        cmp cx,220
+        je derrotaY
+        cmp cx,221
+        je derrotaY
+        cmp cx,222
+        je derrotaY
+        cmp cx,223
+        je derrotaY
+        jne reiniciarX ;; No dio click en el boton derrota
+                                                           
+        ; Coordenada 'Y' para derrota
+        derrotaY:
+        cmp dx,168
+        je salirJuego
+        cmp dx,169
+        je salirJuego
+        cmp dx,170
+        je salirJuego
+        cmp dx,171
+        je salirJuego
+        cmp dx,172
+        je salirJuego
+        cmp dx,173
+        je salirJuego
+        cmp dx,174
+        jne reiniciarX ;; No dio click en el boton derrota                                                   
+              
+        reiniciarX:
+        ; Coordenada 'X' para reiniciar
+        cmp cx,113
+        je reiniciarY
+        cmp cx,114
+        je reiniciarY
+        cmp cx,115
+        je reiniciarY
+        cmp cx,116
+        je reiniciarY
+        cmp cx,117
+        je reiniciarY
+        cmp cx,118
+        je reiniciarY
+        cmp cx,119
+        je reiniciarY
+        jne globoSelec ;; No dio click en el boton reiniciar
+        
+        ; Coordenada 'Y' para reiniciar
+        reiniciarY:
+        cmp dx,168
+        je salirJuego
+        cmp dx,169
+        je salirJuego
+        cmp dx,170
+        je salirJuego
+        cmp dx,171
+        je salirJuego
+        cmp dx,172
+        je salirJuego
+        cmp dx,173
+        je salirJuego
+        cmp dx,174
+        jne globoSelec ;; No dio click en el boton reiniciar      
+                                                           
         globoSelec:
             ;; globo
             cmp cx,131 
@@ -280,33 +377,51 @@ include "emu8086.inc"
         
         jmp obtenerClic
         
-    
-    botonSalir:
-        posicionar 20, 16
+         
+    salirButton proc
+        mov ah,02h
+        mov bh,00
+        mov dl,13d ;cordenada en x donde va posicionada
+        mov dh,17h ;cordenada en y donde va posicionada
+        int 10h
+        ; imprimimos el caracter de la S de salir debajo del cuadro
         imprime salir
+        mov ah,02h
+        mov dl,'S'
+        int 21h 
+        imprime final
+     salirButton endp
+    
+;    botonSalir:
+;        posicionar 20, 16
+;        imprime salir
     
     derrotaButton proc
         mov ah,02h
         mov bh,00
-        mov dl,77d ;cordenada en x donde va posicionada
-        mov dh,0h ;cordenada en y donde va posicionada
+        mov dl,18d ;cordenada en x donde va posicionada
+        mov dh,15h ;cordenada en y donde va posicionada
         int 10h
-        ; imprimimos el caracter de la D de derrota en la esquina superior derecha
+        ; imprimimos el caracter de la D de derrota debajo del cuadro
+        imprime derrota
         mov ah,02h
         mov dl,'D'
-        int 21h
+        int 21h 
+        imprime final
      derrotaButton endp
         
     reiniciarButton proc
         mov ah,02h
         mov bh,00
-        mov dl,75d ;cordenada en x donde va posicionada
-        mov dh,0h  ;cordenada en y donce va posicionada
+        mov dl,3d ;cordenada en x donde va posicionada
+        mov dh,15h  ;cordenada en y donce va posicionada
         int 10h
-        ; imprimimos el caracter de la R de reinicio ahi
+        ; imprimimos el caracter de la R de reinicio debajo del cuadro
+        imprime reiniciar
         mov ah,02h
         mov dl,'R'
         int 21h
+        imprime final
      reiniciarButton endp
     
     globoYellow proc  ;; proceso de pintar globo amarillo
@@ -352,8 +467,8 @@ include "emu8086.inc"
            call globoAzul
            call globoYellow
            call derrotaButton
-           call reiniciarButton
-           call botonSalir 
+           call reiniciarButton 
+           call salirButton
            jmp iniciarMouse 
   
     pCuadro:  ;; pinta el cuadro como texto
