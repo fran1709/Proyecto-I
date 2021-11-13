@@ -47,6 +47,8 @@ include "emu8086.inc"
   ;; Variables de los jugadores   
   jugador1 db 10 dup(?), '$'
   jugador2 db 10 dup(?), '$' 
+  contj1 db 0
+  contj2 db 0
   
   ;Turno de los jugadores
   turno db 0 ;Es 0 para el turno de jugador1, es 1 para jugador2
@@ -329,7 +331,7 @@ include "emu8086.inc"
         je reiniciarY
         cmp cx,119
         je reiniciarY
-        jne globoSelec ;; No dio click en el boton reiniciar
+        jmp rojoX ;; No dio click en el boton reiniciar
         
         ; Coordenada 'Y' para reiniciar
         reiniciarY:
@@ -346,16 +348,178 @@ include "emu8086.inc"
         cmp dx,173
         je salirJuego
         cmp dx,174
-        jne globoSelec ;; No dio click en el boton reiniciar      
-                                                           
-        globoSelec:
-            ;; globo
-            cmp cx,131 
-            jne isBip
-            cmp dx,166
-            jne isBip
-            je salirJuego
+        jne rojoX ;; No dio click en el boton reiniciar      
         
+        	;Validaciones del click para los globos        
+
+;--------------------globo rojo--------------------------
+
+	rojoX:; Coordenada 'X' para globo rojo
+        cmp cx,040 
+        je RojoY
+        cmp cx,041 
+        je RojoY
+        cmp cx,042 
+        je RojoY
+        cmp cx,043 
+        je RojoY
+        cmp cx,044 
+        je RojoY
+	    cmp cx,045 
+        je RojoY
+        cmp cx,046 
+        je RojoY
+        cmp cx,047 
+        je RojoY
+        jmp verdeX
+        
+        RojoY: ; Coordenada 'Y' para globo rojo
+        cmp dx,080
+        je salirJuego
+        cmp dx,081
+        je salirJuego
+        cmp dx,082
+        je salirJuego
+        cmp dx,083
+        je salirJuego
+        cmp dx,084
+        je salirJuego
+        cmp dx,085
+        je salirJuego
+	    cmp dx,086
+        je salirJuego
+        cmp dx,087
+        je salirJuego
+        jne verdeX; No dio click en el globo rojo
+
+;--------------------globo verde--------------------------
+
+	verdeX: ; Coordenada 'X' para globo verde
+        cmp cx,056 
+        je verdeY
+        cmp cx,057  
+        je verdeY
+        cmp cx,058 
+        je verdeY
+        cmp cx,059
+        je verdeY
+        cmp cx,060 
+        je verdeY
+	    cmp cx,061 
+        je verdeY
+        cmp cx,062 
+        je verdeY
+        cmp cx,063 
+        je verdeY
+        jmp amarilloX
+        
+        verdeY: ; Coordenada 'Y' para globo verde
+        cmp dx,096
+        je salirJuego
+        cmp dx,097
+        je salirJuego
+        cmp dx,098
+        je salirJuego
+        cmp dx,099
+        je salirJuego
+        cmp dx,100
+        je salirJuego
+        cmp dx,101
+        je salirJuego
+	    cmp dx,102
+        je salirJuego
+        cmp dx,103
+        je salirJuego
+        jne amarilloX; No dio click en el globo verde
+
+;--------------------globo amarillo--------------------------
+
+	amarilloX: ; Coordenada 'X' para globo amarillo
+        cmp cx,032 
+        je amarilloY
+        cmp cx,033  
+        je amarilloY
+        cmp cx,034 
+        je amarilloY
+        cmp cx,035
+        je amarilloY
+        cmp cx,036 
+        je amarilloY
+	    cmp cx,037 
+        je amarilloY
+        cmp cx,038 
+        je amarilloY
+        cmp cx,039 
+        je amarilloY
+        jmp azulX
+        
+        amarilloY: ; Coordenada 'Y' para globo amarillo
+        cmp dx,096
+        je salirJuego
+        cmp dx,097
+        je salirJuego
+        cmp dx,098
+        je salirJuego
+        cmp dx,099
+        je salirJuego
+        cmp dx,100
+        je salirJuego
+        cmp dx,101
+        je salirJuego
+	    cmp dx,102
+        je salirJuego
+        cmp dx,103
+        je salirJuego
+        jne azulX ;No dio click en el globo amarillo
+
+;--------------------globo azul--------------------------
+
+	azulX: ; Coordenada 'X' para globo azul
+        cmp cx,032 
+        je azulY
+        cmp cx,033  
+        je azulY
+        cmp cx,034 
+        je azulY
+        cmp cx,035
+        je azulY
+        cmp cx,036 
+        je azulY
+	    cmp cx,037 
+        je azulY
+        cmp cx,038 
+        je azulY
+        cmp cx,039 
+        je azulY
+        ;jmp azulX
+        
+        azulY: ; Coordenada 'Y' para globo azul
+        cmp dx,104
+        je salirJuego
+        cmp dx,105
+        je salirJuego
+        cmp dx,106
+        je salirJuego
+        cmp dx,107
+        je salirJuego
+        cmp dx,108
+        je salirJuego
+        cmp dx,109
+        je salirJuego
+	    cmp dx,110
+        je salirJuego
+        cmp dx,111
+        je salirJuego
+        jne isBip ;No dio click en el globo azul
+                                                                   
+;        globoSelec:
+;            ;; globo
+;            cmp cx,131 
+;            jne isBip
+;            cmp dx,166
+;            jne isBip
+;            je salirJuego
+;        
         isBip:
             call beepC
             jmp obtenerClic
@@ -562,7 +726,7 @@ include "emu8086.inc"
         imprime space 
         imprime space
         imprime space
-        imprime jugador1 
+        imprime jugador1
         imprime salto
         imprime space 
         imprime space
