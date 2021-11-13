@@ -1,3 +1,6 @@
+include "emu8086.inc"
+
+
 .model small
 .stack 100h
 .data 
@@ -24,11 +27,14 @@
   limpiarPix db " ", "$"
   xGlobo dw 0
   yGlobo dw 0
+  simboloGlobo db "@", "$"
    
   ;; Variables del menu
   opcion db 0
   dato1 db 1
   dato2 db 2
+  ciclo dw 64h 
+  salir db "Salir","$"
   
   ;; Salto de Linea
   salto db 13,10, '$'
@@ -59,7 +65,28 @@
   globo4 db 20
   dlobo5 db 30       
       
-.code
+.code  
+
+  define_print_num ;call print_num                            
+  define_print_num_uns
+
+  posicionar macro fila, columna; macro para posicionar donde se quiere escribir el caracter 
+    mov ah, 2
+    mov dh, fila ; la interrupcion pide que en dh vaya la fila
+    mov dl, columna ; la interrupcion pide que en dl vaya la columna
+    mov bh, 0 ; en la pagina 0
+    int 10h
+    endm
+ 
+
+  beep macro ; macro que para que se escuhe un sonido
+    mov dl, 07h ; El 07 en ascii corresponde al "beep", la interrupcion pide que eso este en dl
+    mov ah, 02h 
+    int 21h     ; lee el valor que tiene dl
+    
+    endm
+
+
   imprime macro arg  ;; Macro para imprimir cualquier mensaje por parametro
     push ax
     push dx
@@ -72,7 +99,32 @@
     pop ax
         
     endm                  
-    
+  
+  imprimeNumeros macro numero ;; imprime numeros de 2+ cifras
+    xor ax,ax
+    mov al, numero
+    call print_num
+    endm
+  
+  imprimeCaracter macro caracter, colorsito ; macro para imprimer el caracter donde se haya posicionado el cursor
+      
+     
+     mov ah, 0Ah
+     mov al, caracter
+     mov bh, 0
+     mov cx, 1
+     int 10h
+     
+     MOV AH,9H ; Interrupcion que permite pintar el caracter
+     MOV AL,caracter
+     
+       
+     MOV BX, colorsito
+        
+     mov cx, 1
+     int 10h 
+     
+     endm  
              
   inicio: 
     mov ax, @data ;;Accediendo a la base de datos.
@@ -154,25 +206,69 @@
             
         iniciarJuego:  ;; salta a la flag del juego
             jmp playing 
-      
+    
+    ;limpiarDxCx proc
+;        xor dx, dx
+;        xor cx, cx
+;        ret
+;    limpiarDxCx endp
+;    
+;    return:
+;        ret
+;    
+;    posicionarCx proc
+;        dec cx
+;        cmp cx, ciclo
+;        je return
+;        jmp posicionarCx
+;        
+;    posicionarCx endp
+
+    ; Posible random
+    
+    salirJuego:
+        .exit
+    
+    
+    beepC proc
+        mov dl, 07h ; El 07 en ascii corresponde al "beep", la interrupcion pide que eso este en dl
+        mov ah, 02h 
+        int 21h     ; lee el valor que tiene dl 
+        ret   
+        endp
     
     borrarGlobo:
-        mov ah, 0ch  ;;Configuracion para un solo pixel
-        mov al, 02h  ;; Color verde
-        mov dx, xGlobo
-        mov cx, yGlobo 
-        int 10h
-        jmp menu    
+            
+    
+    funcionesClic:
+        ;comparar x,y con variable
+        
+        
+        ;; Una coordenada para salir
+        cmp cx,131 
+        jne globoSelec
+        cmp dx,166
+        jne globoSelec
+        je salirJuego 
+        
+        globoSelec:
+            ;; globo
+            cmp cx,131 
+            jne isBip
+            cmp dx,166
+            jne isBip
+            je salirJuego
+        
+        isBip:
+            call beepC
+            jmp obtenerClic
     
     obtenerClic: ;; lectura del clic derecho  
-        xor dx, dx
-        xor cx, cx
+        ;call limpiarDxCx
         mov ax, 3
         int 33h
-        cmp bx, 1
-        mov yGlobo, cx
-        mov xGlobo, dx
-        je borrarGlobo
+        cmp bx, 1 
+        je funcionesClic      
         jmp obtenerClic
     
     iniciarMouse:
@@ -185,139 +281,80 @@
         jmp obtenerClic
         
     
-    globoYellow:
-        mov ah, 0ch  ;;Configuracion para un solo pixel
-        mov al, 0eh  ;; Color amarillo
-        mov cx, 100  ;; coordenada columna
-        mov dx, 80   ;; coordenada fila
+    botonSalir:
+        posicionar 20, 16
+        imprime salir
+    
+    derrotaButton proc
+        mov ah,02h
+        mov bh,00
+        mov dl,77d ;cordenada en x donde va posicionada
+        mov dh,0h ;cordenada en y donde va posicionada
         int 10h
-            ;; lineas del globo
-            ;izqAm:
-;                inc dx
-;                int 10h
-;                cmp dx, 82
-;                jne izqAm
-;                je abaAm
-;            abaAm:
-;                inc cx
-;                int 10h
-;                cmp cx, 102
-;                jne abaAm
-;                je dereAm    
-;            dereAm:
-;                dec dx
-;                int 10h
-;                cmp dx, 80
-;                jne dereAm
-;                je arriAm    
-;            arriAm:
-;                dec cx
-;                int 10h
-;                cmp cx, 100
-;                jne arriAm
+        ; imprimimos el caracter de la D de derrota en la esquina superior derecha
+        mov ah,02h
+        mov dl,'D'
+        int 21h
+     derrotaButton endp
+        
+    reiniciarButton proc
+        mov ah,02h
+        mov bh,00
+        mov dl,75d ;cordenada en x donde va posicionada
+        mov dh,0h  ;cordenada en y donce va posicionada
+        int 10h
+        ; imprimimos el caracter de la R de reinicio ahi
+        mov ah,02h
+        mov dl,'R'
+        int 21h
+     reiniciarButton endp
+    
+    globoYellow proc  ;; proceso de pintar globo amarillo
+        posicionar 12, 4
+        imprimeCaracter simboloGlobo, 14       
             
-            jmp iniciarMouse
+    globoYellow endp
             
                 
-    globoAzul:
-        mov ah, 0ch  ;; Configuracion para un solo pixel
-        mov al, 01h  ;; Color azul
-        mov cx, 90   ;; coordenada columna
-        mov dx, 130  ;; coordenada fila
-        int 10h
-            ;; lineas del globo
-            izqA:
-                inc dx
-                int 10h
-                cmp dx, 132
-                jne izqA
-                je abaA
-            abaA:
-                inc cx
-                int 10h
-                cmp cx, 92
-                jne abaA
-                je dereA    
-            dereA:
-                dec dx
-                int 10h
-                cmp dx, 130
-                jne dereA
-                je arriA    
-            arriA:
-                dec cx
-                int 10h
-                cmp cx, 90
-                jne arriA
-            jmp globoYellow 
+    globoAzul proc  ;; proceso de pintar globo azul
+        ;; hace falta implementar random
+        ;; cambiar variables en dx, cx
+        posicionar 13, 9
+        imprimeCaracter simboloGlobo, 1 
+        
+        
+        ;; Guardo en la matriz el objeto. 
+        mov si, 11
+        mov matriz[si], "f"  
+            ret
+    
+    globoAzul endp 
     
     
-    globoVerde:
-        mov ah, 0ch  ;; Configuracion para un solo pixel
-        mov al, 02h  ;; Color verde
-        mov cx, 60   ;; coordenada columna
-        mov dx, 100  ;; coordenada fila
-        int 10h
-            ;; lineas del globo
-            izqG:
-                inc dx
-                int 10h
-                cmp dx, 102
-                jne izqG
-                je abaG
-            abaG:
-                inc cx
-                int 10h
-                cmp cx, 62
-                jne abaG
-                je dereG    
-            dereG:
-                dec dx
-                int 10h
-                cmp dx, 100
-                jne dereG
-                je arriG    
-            arriG:
-                dec cx
-                int 10h
-                cmp cx, 60
-                jne arriG
-            jmp globoAzul             
-    
-    globoRojo:
-        mov ah, 0ch ;; Configuracion para un solo pixel
-        mov al, 04h ;; Color rojo
-        mov cx, 40  ;; coordenada columna
-        mov dx, 90  ;; coordenada fila
-        int 10h
-            ;; lineas del globo
-            izquierda1:
-                inc dx
-                int 10h
-                cmp dx, 92
-                jne izquierda1
-                je abajo1
-            abajo1:
-                inc cx
-                int 10h
-                cmp cx, 42
-                jne abajo1
-                je derecha1    
-            derecha1:
-                dec dx
-                int 10h
-                cmp dx, 90
-                jne derecha1
-                je arriba1    
-            arriba1:
-                dec cx
-                int 10h
-                cmp cx, 40
-                jne arriba1
-            jmp globoVerde 
+    globoVerde proc   ;; proceso de pintar globo verde
+         posicionar 12, 7
+         imprimeCaracter simboloGlobo, 2
+         ret
+    globoVerde endp             
+     
+     
+    globoRojo proc  ;; proceso de pintar globo rojo
+         posicionar 10, 5
+         imprimeCaracter simboloGlobo, 4  
+        
+            ret    
+     globoRojo endp         
+ 
                  
-    pintarGlobos:
-           jmp globoRojo
+    pintarGlobos:   ;; se llaman los procesos de pintado
+           call globoRojo
+           call globoVerde
+           call globoAzul
+           call globoYellow
+           call derrotaButton
+           call reiniciarButton
+           call botonSalir 
+           jmp iniciarMouse 
   
     pCuadro:  ;; pinta el cuadro como texto
         imprime salto
@@ -411,7 +448,10 @@
         imprime space
         imprime space
         imprime jugador1 
-        imprime espacio
+        imprime salto
+        imprime space 
+        imprime space
+        imprime space
         imprime jugador2
         imprime salto
         imprime space
@@ -428,7 +468,7 @@
         
                 
     playing:
-        mov ax, 0013h  ;; 40x25 16 colores
+        mov ax, 0003h  ;; 40x25 16 colores
         int 10h       
         
         ;xor ax,ax
